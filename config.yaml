@@ -1,0 +1,66 @@
+# Shared configuration for both studies.
+# Every number that could reasonably be argued about lives here, so that a
+# reviewer can change it and re-run rather than take our word for it.
+
+dataset:
+  # Primary source. Gated on Hugging Face: you must accept the AI2 terms at
+  # https://huggingface.co/datasets/allenai/WildChat-1M and supply a read token.
+  name: allenai/WildChat-1M
+  split: train
+  # We do not read the whole corpus. We read a deterministic subset of the
+  # parquet shards (every Nth shard, starting at shard 0) so the sample is
+  # spread across the file rather than concentrated in whichever period happens
+  # to be stored first. Reproducible: same stride -> same shards -> same rows.
+  #
+  # WildChat-1M ships as 14 shards of ~60k conversations each. About 1.3% of
+  # records survive the filters at >=10 turns, so each shard yields ~770
+  # conversations. Stride 3 selects shards 0/3/6/9/12 -> ~3,850, comfortably
+  # above the 3,000 target. (Stride 6 selects only 0/6/12 -> ~2,300, short of
+  # target; max_shards then does nothing, which is why it is gone.)
+  shard_stride: 3
+
+seed: 20260827
+
+filters:
+  # Applied identically in Study A and Study B, so the two samples are drawn
+  # from the same population and the studies can be discussed together.
+  language: English
+  drop_toxic: true          # WildChat's own toxicity flag
+  drop_redacted_only: false # redaction of PII is fine; it does not distort length
+  min_user_chars: 8         # drops empty / "hi" / test pings
+  max_user_chars: 20000     # drops pasted-document outliers that dominate token counts
+
+  # Coding filter. This is a consumer-chat study and public chat logs skew
+  # technical, so this filter does real work. Stage 1 is the cheap keyword and
+  # code-block heuristic below; stage 2 is a model classifier pass (Study B
+  # only, where we already pay for inference). Both are logged.
+  coding:
+    # A conversation is dropped if the FIRST USER TURN trips either rule.
+    min_keyword_hits: 2     # >=2 distinct coding keywords
+    drop_on_code_block: true # a fenced ``` block in the first user turn
+
+study_a:
+  min_turns: 10             # a "turn" = one user message + one assistant reply
+  target_conversations: 3000
+  # Turn index up to which we report distributions. Beyond this the surviving
+  # conversation count gets thin and the median is no longer trustworthy.
+  report_to_turn: 30
+  min_conversations_per_turn: 100  # stop plotting a turn index below this n
+
+tokenizer:
+  # One public tokenizer, used consistently. o200k_base is the GPT-4o/5-family
+  # encoding: public, stable, and widely recognised. Absolute counts are
+  # therefore indicative for non-OpenAI models, not exact. See METHODOLOGY.md.
+  encoding: o200k_base
+  # Chat-format overhead. Providers wrap each message in role/delimiter tokens.
+  # These are small relative to content but we model them explicitly rather
+  # than pretending they are zero.
+  tokens_per_message: 4
+  tokens_reply_priming: 3
+  system_prompt_tokens: 0   # unknown for consumer products; set to 0 and noted
+
+study_b:
+  target_prompts: 400
+  # Populated in the Study B session. Left empty deliberately: model names and
+  # prices go stale and must be fetched, not remembered. See pricing.yaml.
+  ladder: []

@@ -1,0 +1,36 @@
+{
+  "dataset": "allenai/WildChat-1M",
+  "shards_read": [
+    "data/train-00000-of-00014.parquet",
+    "data/train-00003-of-00014.parquet",
+    "data/train-00006-of-00014.parquet",
+    "data/train-00009-of-00014.parquet",
+    "data/train-00012-of-00014.parquet"
+  ],
+  "shard_list_from_local_cache": false,
+  "seed": 20260827,
+  "min_turns": 10,
+  "records_scanned": 299282,
+  "drop_reasons": {
+    "too_few_turns": 145908,
+    "not_english": 132135,
+    "coding": 12391,
+    "ok": 3824,
+    "first_turn_too_short": 3547,
+    "first_turn_too_long": 1365,
+    "near_duplicate": 112
+  },
+  "pool_after_filters": 3824,
+  "sampled": 3000,
+  "filters": {
+    "language": "English",
+    "drop_toxic": true,
+    "drop_redacted_only": false,
+    "min_user_chars": 8,
+    "max_user_chars": 20000,
+    "coding": {
+      "min_keyword_hits": 2,
+      "drop_on_code_block": true
+    }
+  }
+}

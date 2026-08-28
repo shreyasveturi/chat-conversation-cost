@@ -1,0 +1,49 @@
+{
+  "n_conversations": 3000,
+  "n_turns_median": 13.0,
+  "tokenizer": "o200k_base",
+  "max_turn_reported": 30,
+  "history_share_cum_at_turn": {
+    "1": 0.09375,
+    "5": 0.9304228707564026,
+    "10": 0.969782545949258,
+    "20": 0.9800751832564005,
+    "30": 0.9888054057022951
+  },
+  "repeat_share_cum_at_turn": {
+    "1": 0.09375,
+    "5": 0.6178281229069704,
+    "10": 0.802097316732688,
+    "20": 0.9005080506890261,
+    "30": 0.9342610262616581
+  },
+  "relative_cost_vs_turn1_at_turn": {
+    "1": 1.0,
+    "5": 26.518292682926827,
+    "10": 65.80397022332507,
+    "20": 89.73400673400674,
+    "30": 163.2984496124031
+  },
+  "cum_input_tokens_at_turn": {
+    "1": 32.0,
+    "5": 2640.0,
+    "10": 11986.0,
+    "20": 34243.5,
+    "30": 103984.5
+  },
+  "final_turn_history_share_median": 0.9787832756024986,
+  "final_turn_history_share_p25": 0.9542185189728122,
+  "final_turn_history_share_p75": 0.9888164992532948,
+  "growth": {
+    "growth_exponent": 1.9450589033503507,
+    "log_log_r2": 0.9901909869132899
+  },
+  "balanced_panel": {
+    "min_turns": 30,
+    "n_conversations": 118,
+    "compare_turn": 10,
+    "history_share_balanced_at_compare_turn": 0.9601576473873206,
+    "history_share_unbalanced_at_compare_turn": 0.969782545949258,
+    "history_share_cum_at_final_turn": 0.9888054057022951
+  }
+}

@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+
+# Raw and derived conversation text is not redistributed: AI2's licence governs
+# the WildChat corpus. The filter log and the per-turn token tables under
+# results/ are committed instead, which is what a reviewer needs.
+data/out/*.jsonl
+
+.DS_Store
+.ipynb_checkpoints/
