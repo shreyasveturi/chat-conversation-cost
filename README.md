@@ -29,6 +29,7 @@ ten turns or more:
 | Share of input spend that is resent history, by turn 30 | **99%** |
 | Cost of turn 10 vs. the first message in the same thread | **63×** |
 | Cost of turn 30 vs. the first message | **172×** |
+| Input tokens for one message at turn 1 → turn 30 (median) | **32 → 6,610** |
 | Cumulative input tokens by turn 30 (median) | **99k** |
 | Fitted growth exponent of cumulative input vs. turn count | **1.95** (R² = 0.992) |
 
@@ -116,6 +117,13 @@ These are not fine print. They bound what the numbers above mean.
   accounts for very little of the rise; the effect is within-conversation.
 - **Input tokens only.** Output tokens consume quota too, but they are generated
   once and never resent, so they do not drive the quadratic effect.
+- **The multiple is big partly because the baseline is tiny — read the absolute
+  numbers.** A median WildChat opener is ~29 tokens, so "172× the
+  first message" means going from **32 to 6,610 tokens** for one
+  message. That is a real and fast-growing cost, but it is not a large absolute
+  number, and anyone quoting the multiple without the token counts is
+  overselling it. The multiple is the right shape; the tokens are the right
+  magnitude.
 - **The curve thins at high turn counts.** All 3,000 conversations
   contribute up to turn 10; by turn 30 only 134 remain. The
   right-hand end of every chart is the noisiest part.

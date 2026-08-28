@@ -361,6 +361,56 @@ effect, but they do consume quota. The resent-history share is a share of
 
 ---
 
+### 2.7 Study A2 — is the history load-bearing? (partially run)
+
+Study A1 shows the history is re-transmitted. It does not show the answer needed
+it. A2 asks whether the same turn can be answered from less context, and splits
+into two halves.
+
+**The accounting half (run).** `study_a/truncation_pilot.py --accounting` needs
+no model and bounds the prize — how much input would be saved if you *could*
+drop the old context. Answering turn 10 with only the last k turns:
+
+| kept context | median input saved (turn 10) | (turn 20) |
+|---|---:|---:|
+| last 2 turns only | 75.6% | 88.2% |
+| last 4 turns only | 53.1% | 77.5% |
+| last 6 turns only | 30.9% | 67.3% |
+| summary + last 4 turns (200-token summary) | 43.5% | 71.7% |
+
+The summary length is a parameter, not a measurement — compression cannot be
+costed without generating summaries — so it is swept (100/200/400 tokens) rather
+than assumed.
+
+**The quality half (NOT run).** Regenerating the turn from full, truncated and
+compressed history and judging the three against each other needs API budget
+that this project has not spent. Without it, the accounting above says only what
+*could* be saved, never whether the answer would survive. Do not cite these
+percentages as savings; they are an upper bound on an unproven manoeuvre.
+
+> **Prior work has already done a version of this, and it matters.** Schelpe
+> (2026), [*Byte-Exact Deduplication in Retrieval-Augmented Generation*](https://arxiv.org/abs/2605.09611),
+> reports 80.34% context reduction in the multi-turn conversational regime
+> (5,000 WildChat conversations) and validates it with a five-judge cross-vendor
+> panel, concluding "zero measurable quality regression". That is stronger
+> evidence on the necessity question than our planned 100-conversation pilot
+> would produce, and it points the same way. Our A2, if run, would be a
+> replication with a different removal method (truncation and summarisation
+> rather than byte-exact dedup), not a first look.
+
+### 2.8 The multiple is inflated by a small baseline
+
+`relative_cost_vs_turn1` reaches 172× at turn 30, which sounds dramatic and is
+partly an artefact of what it is divided by. The median WildChat opening message
+is **29 tokens**. So 172× is 32 tokens → 6,610 tokens for a single message.
+
+That is a genuine, steeply growing cost, and 6,610 tokens is not nothing when it
+recurs every turn under a quota. But it is not a large absolute number, and the
+multiple should never be quoted without the token counts beside it. The README
+reports both on the same row for that reason.
+
+---
+
 ## 3. Study B — model over-service
 
 **Status: not yet run.** The protocol below is the pre-registered design,

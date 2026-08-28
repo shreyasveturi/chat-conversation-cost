@@ -97,6 +97,8 @@ def main() -> None:
             "balanced_compare": pct(bal.get("history_share_balanced_at_compare_turn")),
             "unbalanced_compare": pct(bal.get("history_share_unbalanced_at_compare_turn")),
             "balanced_gap_pp": gap_pp(bal),
+            "input_1": f"{head['input_tokens_at_turn'].get('1', 0):,.0f}",
+            "input_max": f"{head['input_tokens_at_turn'].get(max_turn, 0):,.0f}",
         }
     else:
         values = dict.fromkeys(
@@ -104,7 +106,7 @@ def main() -> None:
              "rel_cost_10", "rel_cost_max", "cum_tokens_max", "growth_exponent",
              "log_log_r2", "balanced_n", "balanced_share", "balanced_turn",
              "balanced_compare_turn", "balanced_compare", "unbalanced_compare",
-             "balanced_gap_pp"],
+             "balanced_gap_pp", "input_1", "input_max"],
             PENDING,
         )
         values["status_a"] = (

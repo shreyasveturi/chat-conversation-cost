@@ -176,6 +176,10 @@ def headline(df: pd.DataFrame, agg: pd.DataFrame, cfg: dict) -> dict:
             str(t): at(t, "relative_cost_vs_turn1_p50") for t in marks
             if at(t, "relative_cost_vs_turn1_p50") is not None
         },
+        "input_tokens_at_turn": {
+            str(t): at(t, "input_tokens_p50") for t in marks
+            if at(t, "input_tokens_p50") is not None
+        },
         "cum_input_tokens_at_turn": {
             str(t): at(t, "cum_input_tokens_p50") for t in marks
             if at(t, "cum_input_tokens_p50") is not None
