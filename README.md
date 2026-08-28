@@ -97,8 +97,14 @@ These are not fine print. They bound what the numbers above mean.
   contribute up to turn 10; by turn 30 only 118 remain. The
   right-hand end of every chart is the noisiest part.
 - Read 5 shard(s) at stride 3; exact list in the filter log.
-- **The coding filter is heuristic and not yet validated** against a
-  hand-labelled sample. See [METHODOLOGY.md](METHODOLOGY.md) §1.3.
+- **The coding filter is imperfect, and we measured how imperfect.** Validated
+  on 200 blind prompts sampled from both sides of the decision: **78% precision,
+  88% recall**, leaving roughly one in nine surviving conversations still
+  coding-flavoured. A sensitivity re-run that drops a further 9.7% of the sample
+  moves the headline shares by **under 0.05pp** and the growth exponent by
+  0.006 — Study A measures conversation *shape*, not topic, so the residue is
+  not load-bearing. It would be for Study B. Labels were model-generated; a
+  human relabel is still outstanding. See [METHODOLOGY.md](METHODOLOGY.md) §1.3.
 
 Full protocol and limitations: **[METHODOLOGY.md](METHODOLOGY.md)**.
 

@@ -81,12 +81,77 @@ Stage 2 is a model classifier pass over the survivors. **It applies to Study B
 only**, where we are already paying for inference. Study A therefore relies on
 the heuristic alone.
 
-> **Known limitation.** The heuristic filter has not yet had its precision and
-> recall measured against a hand-labelled sample. The brief calls for eyeballing
-> a sample of survivors to confirm the filter worked, and that check is
-> outstanding. Until it is done, treat "non-coding" as "heuristically
-> non-coding". `data/out/study_a_filter_log.json` reports how many were dropped
-> for each reason, so the magnitude of the filter's effect is at least visible.
+#### Validation of the coding filter
+
+Eyeballing only the survivors would measure nothing: it can reveal false
+negatives but says nothing about ordinary prompts wrongly discarded. So
+`data/validate_coding_filter.py` samples **both sides** of the decision — 100
+prompts the filter flagged as coding and 100 it let through — shuffles them, and
+hides the verdict in a separate key file. The population sampled is the one the
+filter acts on inside the pipeline: records already past the language, toxicity
+and length filters, with at least 10 turns.
+
+**Result on 197 labelled prompts** (3 marked unsure and excluded):
+
+| | filter said coding | filter said clean |
+|---|---:|---:|
+| **actually coding** | 77 | 11 |
+| **actually clean** | 22 | 87 |
+
+- **Precision 77.8%** — about one in five dropped conversations was not coding.
+- **Recall 87.5%** — it catches most, but not all, coding prompts.
+- **False-negative rate among survivors 11.2%**, implying roughly 440 coding
+  conversations remain in the ~3,900-conversation pool.
+
+Two failure modes account for most of the errors:
+
+1. **False positives are dominated by long technical-adjacent prose.** Six of
+   the 22 are AutoGPT-style agent scaffolds ("CONSTRAINTS: 1. ~4000 word limit
+   …"), which trip the keyword rule at length. These are arguably *correct* to
+   drop from a consumer-chat study even though they are not coding requests;
+   counting them as correct raises precision to ~84%. The rest are genuine
+   misfires: a Microsoft interview role-play, a fantasy worldbuilding prompt, a
+   scam-baiting email, a physics instrumentation paragraph.
+2. **False negatives are short, keyword-free code questions** — "Write mini
+   injector in C", "How to read first byte from a bytearray", "add some space
+   between bottomNavigationBar and bottom of screen". One or zero vocabulary
+   hits and no code block, so the two-hit threshold never fires.
+
+> **Caveat on the labels.** These 197 labels were produced by the assistant, not
+> by a human. The brief calls for the repo owner to hand-label a subset, and
+> that check is still outstanding. The blind CSV and key are committed
+> (`data/out/coding_validation_*.csv|json`) so anyone can relabel and re-score
+> with `python data/validate_coding_filter.py --score`. Labelling used the
+> strict definition "asks for code, debugging, or a programming explanation";
+> a broader "any developer-flavoured traffic" definition would score the filter
+> more favourably, and the boundary genuinely is a judgement call.
+
+#### Does the contamination matter?
+
+For Study A, no. `study_a/sensitivity_coding.py` re-runs the entire cost
+computation on an aggressively re-filtered subset (one keyword hit is enough to
+drop, versus two), which removes a further 291 conversations — 9.7% of the
+sample. The headline metrics barely move:
+
+| metric | baseline (n=3,000) | strict (n=2,709) | delta |
+|---|---:|---:|---:|
+| history share @ turn 10 | 97.0% | 97.0% | +0.03pp |
+| history share @ turn 30 | 98.9% | 98.9% | +0.04pp |
+| relative cost @ turn 30 | 163.3× | 170.2× | +6.9× |
+| growth exponent | 1.945 | 1.951 | +0.006 |
+
+This is the expected result rather than a lucky one: Study A measures the
+*shape* of a conversation — how many turns, how long each message is — and that
+arithmetic does not care whether the topic is code. Residual coding content is
+not load-bearing here.
+
+**It will matter for Study B.** There the task mix directly determines the
+over-service estimate, and coding prompts are exactly the category where a
+cheap model is most likely to fall short. The stage-2 classifier pass is
+therefore not optional for Study B, and the filter should be improved before
+that study runs — the two failure modes above say how: raise recall with a
+short-prompt rule that does not depend on keyword count, and stop penalising
+long prose that merely mentions technical words.
 
 ---
 
