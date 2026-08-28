@@ -170,8 +170,26 @@ v2 flags 610 conversations where v1 flagged 313, and at 74% precision roughly
 > `python data/validate_coding_filter.py --score --prefix coding_validation_test`.
 > Labelling used the strict definition "asks for code, debugging, or a
 > programming explanation"; sysadmin, networking-concept and data-science-theory
-> prompts were labelled *not* coding, which is a defensible but arguable line
-> and one a human labeller may well draw differently.
+> prompts were labelled *not* coding, which is a defensible but arguable line.
+
+**How much does that line matter?** Enough to report. Re-labelling under a
+broader rubric — where technical/developer-domain traffic counts as coding even
+with no code requested — moves 8 of the 179 held-out prompts (Linux server
+setup, `tcp_quickack`/`tcp_mtu_probing` sysctl questions, RedHat + Active
+Directory, an AWS AMI lab):
+
+| | strict rubric | broad rubric |
+|---|---:|---:|
+| precision | 74.1% | **81.2%** |
+| recall | 91.3% | 90.8% |
+| est. coding left in pool | ~228 | ~266 |
+
+**Precision is rubric-dependent by about 7 points; recall is not.** That
+asymmetry is worth knowing: the claim "this filter catches ~91% of coding
+prompts" is robust to where you draw the line, while "~74% of what it drops is
+really coding" is not — much of the disputed remainder is sysadmin and
+networking, which a reasonable person could file either way. The strict figures
+are the ones published, because they are the less flattering pair.
 
 #### Does the contamination matter?
 

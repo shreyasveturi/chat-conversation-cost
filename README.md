@@ -63,7 +63,19 @@ existing thread costs about **172×** what the same question costs in
 a fresh one — not because the question is harder, but because the thread is
 dragged along with it.
 
-That is the whole of the advice. It is not dressed up as more than it is.
+That is the whole of the advice. It is not dressed up as more than it is — and
+it is not ours alone. Anthropic's own guidance says the same thing:
+
+> "Longer conversations that trigger automatic context management consume more
+> of your usage limit." … "Try starting a new conversation if you're approaching
+> your usage limit in a longer chat."
+> — [Anthropic Help Center](https://support.claude.com/en/articles/11647753-how-do-usage-and-length-limits-work)
+
+The honest counterweight, which that same guidance makes explicit: a fresh chat
+costs you the context you have to re-establish. Starting over on a task that
+genuinely depends on the thread means re-explaining it, and paying for that too.
+The lever is real when **the topic changes** — it is not an argument for
+short-thread purism.
 
 ---
 
@@ -71,12 +83,23 @@ That is the whole of the advice. It is not dressed up as more than it is.
 
 These are not fine print. They bound what the numbers above mean.
 
-- **Prompt caching makes these an upper bound.** Providers cache repeated
-  prefixes and bill them at a fraction of the normal rate. Whether and how that
-  applies inside a consumer subscription is not observable from outside. Caching
-  changes the *price* of a resent token, not the *fact* that it is resent — so
-  the shape of every curve here survives, but the magnitude may be considerably
-  smaller than the raw token counts suggest.
+- **Prompt caching makes these an upper bound — and the discount is large.**
+  On the Anthropic API, cache *reads* are billed at roughly **0.1×** the normal
+  input rate, and a resent conversation prefix is precisely the stable-prefix
+  case caching is built for. Anthropic also states that Claude.ai has
+  [built-in caching](https://support.claude.com/en/articles/9797557-usage-limit-best-practices)
+  for conversation context. So the *monetary* gap between turn 1 and turn 30 is
+  far smaller than 172× wherever caching is active. Caching changes the price of
+  a resent token, not the fact that it is resent: the **shape** of every curve
+  here survives, the **magnitude** does not. Treat every number on this page as
+  an upper bound on cost, and a measurement of redundancy rather than of spend.
+- **"Resent" is not the same as "wasted", and this study does not measure
+  necessity.** It shows the history is re-transmitted; it does not show the
+  answer could have been produced without it. The pilot designed to test that —
+  regenerating answers from truncated and compressed history — is specified in
+  [METHODOLOGY.md](METHODOLOGY.md) and **has not been run**. Until it is, the
+  supported claim is "long threads are expensive", not "long threads waste your
+  quota".
 - **One tokenizer, used consistently.** `tiktoken o200k_base`. Other model
   families tokenize differently; absolute counts are indicative, not exact.
 - **This is about long threads specifically.** Conversations of fewer than ten
