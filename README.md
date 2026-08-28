@@ -159,15 +159,17 @@ conversation length costs.
 
 ## Reproducing
 
-WildChat-1M is gated. Accept the terms at
-[huggingface.co/datasets/allenai/WildChat-1M](https://huggingface.co/datasets/allenai/WildChat-1M),
-create a read token, then:
+No API key, no dataset access request, no cost. WildChat-1M is public under
+ODC-BY, so this runs from a clean checkout:
 
 ```bash
 python -m venv .venv && .venv/bin/pip install -r requirements.txt
-export HF_TOKEN=hf_...
 ./run_study_a.sh
 ```
+
+It downloads 1.19 GB of parquet shards (5 of WildChat's 14, at stride 3) on the
+first run and caches them. A Hugging Face token is not required, though setting
+`HF_TOKEN` raises the Hub's rate limits and speeds the download up.
 
 `run_study_a.sh` verifies the arithmetic, samples and filters the corpus,
 computes the per-turn cost tables, renders the charts, and regenerates this
@@ -213,8 +215,20 @@ breakdown in `data/out/study_a_filter_log.json`:
 
 ---
 
-## Licence
+## Data attribution and licence
 
-Code: MIT. The WildChat data is governed by
-[AI2's licence](https://huggingface.co/datasets/allenai/WildChat-1M) and is not
-redistributed here.
+Contains information from [**WildChat-1M**](https://huggingface.co/datasets/allenai/WildChat-1M),
+which is made available under the
+[ODC Attribution License](https://opendatacommons.org/licenses/by/1-0/).
+
+> Zhao et al., *WildChat: 1M ChatGPT Interaction Logs in the Wild*,
+> [arXiv:2405.01470](https://arxiv.org/abs/2405.01470). AI2, ODC-BY.
+
+The full corpus is **not** redistributed here — it is a `hf_hub_download` away
+and the pipeline fetches it. What *is* committed is the derived per-turn token
+table, the filter logs, and the ~400 prompt excerpts that make up the coding
+filter's validation sets, which ODC-BY permits with the attribution above. AI2
+de-identified the corpus with Microsoft Presidio and hand-written rules before
+release.
+
+Code in this repository: MIT. See [LICENSE](LICENSE).

@@ -5,15 +5,9 @@ set -euo pipefail
 PY="${PY:-.venv/bin/python}"
 
 if [[ -z "${HF_TOKEN:-}${HUGGING_FACE_HUB_TOKEN:-}" ]] && [[ ! -s "$HOME/.cache/huggingface/token" ]]; then
-  cat >&2 <<'MSG'
-No Hugging Face credentials found.
-
-WildChat-1M is a gated dataset. To run this study you need to:
-  1. accept the terms at https://huggingface.co/datasets/allenai/WildChat-1M
-  2. create a read token at https://huggingface.co/settings/tokens
-  3. export HF_TOKEN=hf_...        (or run: hf auth login)
-MSG
-  exit 1
+  echo "[note] No Hugging Face credentials found. WildChat-1M is public" >&2
+  echo "       (ODC-BY), so this should still work. If downloads fail, set" >&2
+  echo "       HF_TOKEN or run: hf auth login" >&2
 fi
 
 echo "==> 1/4  verifying the cost arithmetic"

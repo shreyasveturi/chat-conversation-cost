@@ -3,8 +3,9 @@
 # reviewer can change it and re-run rather than take our word for it.
 
 dataset:
-  # Primary source. Gated on Hugging Face: you must accept the AI2 terms at
-  # https://huggingface.co/datasets/allenai/WildChat-1M and supply a read token.
+  # Primary source. Public on Hugging Face under ODC-BY; no token or terms
+  # acceptance required. (It was gated under AI2's ImpACT licence until
+  # 2024-06-26, when AI2 relicensed it to ODC-BY retroactively.)
   name: allenai/WildChat-1M
   split: train
   # We do not read the whole corpus. We read a deterministic subset of the

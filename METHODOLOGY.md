@@ -18,8 +18,19 @@ Phase 1 contains two studies:
 ### 1.1 Source
 
 `allenai/WildChat-1M` — one million real user conversations with ChatGPT-family
-assistants, collected by AI2 and released under a gated licence on Hugging Face.
-It is the closest public approximation to a consumer chat query distribution.
+assistants, collected by AI2. It is the closest public approximation to a
+consumer chat query distribution.
+
+The dataset is public and **not gated**: it needs no Hugging Face token and no
+terms acceptance. It was gated under AI2's ImpACT licence until 26 June 2024,
+when AI2 relicensed it to [ODC-BY](https://opendatacommons.org/licenses/by/1-0/)
+and applied that change retroactively. Older instructions saying otherwise —
+including an earlier version of this file — are out of date.
+
+Under ODC-BY, redistribution of the database and of derived subsets is
+permitted with attribution, which is why the validation prompt samples in
+`data/out/` are committed. AI2 de-identified the corpus with Microsoft Presidio
+plus hand-written rules before release.
 
 We do not write our own prompts. Self-authored prompt sets unconsciously skew
 easy, and a number derived from them means nothing.

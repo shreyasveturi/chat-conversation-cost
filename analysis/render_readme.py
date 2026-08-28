@@ -108,9 +108,9 @@ def main() -> None:
             PENDING,
         )
         values["status_a"] = (
-            "**not yet run** — the pipeline is complete and tested, but "
-            "WildChat-1M is gated and no Hugging Face token was available. "
-            "Every figure below renders as — until `./run_study_a.sh` is run"
+            "**not yet run** — the pipeline is complete and tested, but no "
+            "results exist yet. Every figure below renders as — until "
+            "`./run_study_a.sh` is run"
         )
 
     # Reproducibility note about which shards were actually read.

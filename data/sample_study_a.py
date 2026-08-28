@@ -69,7 +69,7 @@ def list_shards(repo: str, stride: int) -> tuple[list[str], bool]:
             f for f in HfApi().list_repo_files(repo, repo_type="dataset")
             if f.endswith(".parquet")
         )
-    except Exception as exc:  # no token, gated, offline
+    except Exception as exc:  # offline, network failure, rate limit
         files = []
         print(f"[shards] could not list {repo} ({type(exc).__name__}).", flush=True)
 
@@ -83,9 +83,8 @@ def list_shards(repo: str, stride: int) -> tuple[list[str], bool]:
     if not selected:
         raise SystemExit(
             f"Cannot list {repo} and nothing is cached locally.\n"
-            "WildChat-1M is gated: accept the terms at\n"
-            f"  https://huggingface.co/datasets/{repo}\n"
-            "then set HF_TOKEN (or run `hf auth login`)."
+            "The dataset is public (ODC-BY), so this is most likely a network\n"
+            "problem or HF_HUB_OFFLINE being set."
         )
     print(f"[shards] WARNING: using {len(selected)} shard(s) already in the local "
           f"cache; the stride setting is not applied. Set HF_TOKEN for the full "
@@ -116,8 +115,8 @@ def main() -> None:
         authed = bool(os.environ.get("HF_TOKEN")
                       or os.environ.get("HUGGING_FACE_HUB_TOKEN"))
     if not authed:
-        print("[warn] No Hugging Face credentials found. WildChat-1M is gated; "
-              "set HF_TOKEN or run `hf auth login`.", flush=True)
+        print("[note] No Hugging Face credentials found. WildChat-1M is public "
+              "(ODC-BY), so this should work anyway.", flush=True)
 
     shards, used_cache = list_shards(ds["name"], ds["shard_stride"])
 
