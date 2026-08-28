@@ -1,0 +1,15 @@
+{
+  "labelled": 179,
+  "unsure_excluded": 2,
+  "true_positive": 63,
+  "false_positive": 22,
+  "true_negative": 88,
+  "false_negative": 6,
+  "precision": 0.7411764705882353,
+  "recall": 0.9130434782608695,
+  "false_negative_rate_among_survivors": 0.06382978723404255,
+  "estimated_coding_remaining_in_pool": 228.38297872340425,
+  "population_clean": 3578,
+  "population_flagged": 610,
+  "note": "Sample is balanced by construction, so precision/recall are per-side rates and not corpus base rates."
+}

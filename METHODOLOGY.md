@@ -65,17 +65,28 @@ Implemented in `data/filters.py`; every rejection is tallied by reason into
 | Toxicity | WildChat `toxic` flag set → drop | Removes adversarial, jailbreak and NSFW traffic, which is not the consumer usage we are measuring. |
 | Length floor | first user turn < 8 chars | Drops empty turns, "hi", and connection tests. |
 | Length ceiling | first user turn > 20,000 chars | A pasted 50-page document is a real use case but it dominates token statistics and is not representative. |
+| Agent scaffold | long AutoGPT-style prompt dumps → drop | Developer traffic, not consumer chat. Reported separately from coding so neither filter's accuracy is misstated. |
 | Coding | see below | Public chat logs skew technical; this is a consumer-chat study. |
 | Near-duplicate | SHA-1 of whitespace-collapsed, lowercased first 300 chars | Templated openers are re-sent by many users. |
 | Turn count (Study A only) | fewer than 10 turns → drop | Study A is about long threads. |
 
 **The coding filter** runs in two stages. Stage 1, used in both studies, is a
-heuristic over the first user turn: drop if it contains a fenced code block or a
-code-shaped line (a `def`/`class`/`import` opener, an arrow function, a shell
-prompt, a semicolon-terminated method call), or if it hits **two or more**
-distinct terms from a ~120-word programming vocabulary. Two hits are required
-because single words like "function", "class" and "api" are common in ordinary
-English.
+heuristic over the first user turn (`is_coding` in `data/filters.py`). It drops
+a prompt on any of:
+
+- a fenced code block;
+- a code-shaped construct — a `def`/`class`/`import`/`#include` opener, an arrow
+  function, a shell prompt, a method call such as `pd.concat(...)`, an
+  assignment from a call, a C-style declaration, `::`, `->` or `<T>`;
+- two or more distinct camelCase / snake_case identifiers, which is a strong
+  code signal needing no vocabulary at all;
+- enough hits against a ~140-word programming vocabulary, where "enough" scales
+  with prompt length: **1 hit** for prompts of ≤40 words, **2** up to 200 words,
+  **3** beyond that.
+
+The length-scaled threshold is the key design choice, and it exists because the
+fixed-threshold first version failed in two measurable ways. See the validation
+below.
 
 Stage 2 is a model classifier pass over the survivors. **It applies to Study B
 only**, where we are already paying for inference. Study A therefore relies on
@@ -86,74 +97,92 @@ the heuristic alone.
 Eyeballing only the survivors would measure nothing: it can reveal false
 negatives but says nothing about ordinary prompts wrongly discarded. So
 `data/validate_coding_filter.py` samples **both sides** of the decision — 100
-prompts the filter flagged as coding and 100 it let through — shuffles them, and
-hides the verdict in a separate key file. The population sampled is the one the
-filter acts on inside the pipeline: records already past the language, toxicity
-and length filters, with at least 10 turns.
+prompts the filter flagged and 100 it let through — shuffles them, and hides the
+verdict in a separate key file. The population sampled is the one the filter
+acts on inside the pipeline: records already past the language, toxicity, length
+and agent-scaffold filters, with at least 10 turns.
 
-**Result on 197 labelled prompts** (3 marked unsure and excluded):
+**v1**, a fixed two-keyword threshold, scored **77.8% precision / 87.5% recall**
+on 197 labelled prompts, implying about 440 coding conversations still in the
+pool. Its two failure modes were structural rather than gaps in vocabulary:
 
-| | filter said coding | filter said clean |
+1. **A fixed threshold cannot fire on short prompts.** "Write mini injector in
+   C", "How to read first byte from a bytearray" and "add some space between
+   bottomNavigationBar and bottom of screen" are unmistakably coding and hit
+   zero or one keyword.
+2. **The same threshold over-fires on long prose** that merely mentions
+   technical words — an interview role-play, a physics paragraph, a fantasy
+   worldbuilding prompt. A 900-word essay containing "api" and "linux" is not a
+   coding request.
+
+**v2** addresses both: the keyword threshold now scales with prompt length
+(short prompts need less evidence, long prose needs more), the code-shape regex
+was fixed to match calls without a trailing semicolon — v1's pattern could not
+match any Python or JavaScript snippet — and camelCase/snake_case identifier
+density was added as a vocabulary-free structural signal. Long autonomous-agent
+prompt dumps (AutoGPT-style "CONSTRAINTS: 1. ~4000 word limit …") now get their
+own `agent_scaffold` drop reason; they are developer traffic rather than
+consumer chat, but they are not coding *requests*, and conflating them made the
+coding filter's precision look worse than it was.
+
+**v2 was tuned on the v1 validation set and then evaluated on a fresh held-out
+sample** (different seed, 181 prompts not present in the first set). This
+matters: on the tuning set v2 appeared to reach 83.7% precision, but on held-out
+data it scores **74.1% precision / 91.3% recall** — a ~10-point optimism gap
+that is exactly what in-sample evaluation of a tuned classifier produces. The
+held-out figures are the ones reported.
+
+| | v1 | v2 |
 |---|---:|---:|
-| **actually coding** | 77 | 11 |
-| **actually clean** | 22 | 87 |
+| precision | 77.8% | 74.1% |
+| recall | 87.5% | 91.3% |
+| miss rate among survivors | 11.2% | **6.4%** |
+| est. coding conversations left in pool | ~440 | **~228** |
 
-- **Precision 77.8%** — about one in five dropped conversations was not coding.
-- **Recall 87.5%** — it catches most, but not all, coding prompts.
-- **False-negative rate among survivors 11.2%**, implying roughly 440 coding
-  conversations remain in the ~3,900-conversation pool.
+v2 therefore trades precision for recall and roughly halves contamination. That
+is the right trade here — the goal is a clean consumer-chat sample, there is
+ample data, and a wrongly-dropped borderline prompt costs less than a coding
+prompt surviving into Study B's task mix. The cost is real and worth stating:
+v2 flags 610 conversations where v1 flagged 313, and at 74% precision roughly
+160 of those are ordinary prompts discarded for looking technical.
 
-Two failure modes account for most of the errors:
+> **Direct v1-vs-v2 comparison on one sample is not sound**, and the repo does
+> not claim it. Each validation set is stratified by the filter being tested, so
+> running v1 against v2's sample structurally penalises v1's recall (it scores
+> an implausible 31.9% there). The comparable quantity is the population-level
+> miss rate in the table above, which is estimated the same way for both.
 
-1. **False positives are dominated by long technical-adjacent prose.** Six of
-   the 22 are AutoGPT-style agent scaffolds ("CONSTRAINTS: 1. ~4000 word limit
-   …"), which trip the keyword rule at length. These are arguably *correct* to
-   drop from a consumer-chat study even though they are not coding requests;
-   counting them as correct raises precision to ~84%. The rest are genuine
-   misfires: a Microsoft interview role-play, a fantasy worldbuilding prompt, a
-   scam-baiting email, a physics instrumentation paragraph.
-2. **False negatives are short, keyword-free code questions** — "Write mini
-   injector in C", "How to read first byte from a bytearray", "add some space
-   between bottomNavigationBar and bottom of screen". One or zero vocabulary
-   hits and no code block, so the two-hit threshold never fires.
-
-> **Caveat on the labels.** These 197 labels were produced by the assistant, not
-> by a human. The brief calls for the repo owner to hand-label a subset, and
-> that check is still outstanding. The blind CSV and key are committed
-> (`data/out/coding_validation_*.csv|json`) so anyone can relabel and re-score
-> with `python data/validate_coding_filter.py --score`. Labelling used the
-> strict definition "asks for code, debugging, or a programming explanation";
-> a broader "any developer-flavoured traffic" definition would score the filter
-> more favourably, and the boundary genuinely is a judgement call.
+> **Caveat on the labels.** These labels were produced by the assistant, not by
+> a human. The brief calls for the repo owner to hand-label a subset, and that
+> check is still outstanding. Both blind CSVs and keys are committed
+> (`data/out/coding_validation*`) so anyone can relabel and re-score with
+> `python data/validate_coding_filter.py --score --prefix coding_validation_test`.
+> Labelling used the strict definition "asks for code, debugging, or a
+> programming explanation"; sysadmin, networking-concept and data-science-theory
+> prompts were labelled *not* coding, which is a defensible but arguable line
+> and one a human labeller may well draw differently.
 
 #### Does the contamination matter?
 
 For Study A, no. `study_a/sensitivity_coding.py` re-runs the entire cost
 computation on an aggressively re-filtered subset (one keyword hit is enough to
-drop, versus two), which removes a further 291 conversations — 9.7% of the
-sample. The headline metrics barely move:
+drop), removing a further 108 conversations. The headline metrics barely move:
 
-| metric | baseline (n=3,000) | strict (n=2,709) | delta |
+| metric | baseline (n=3,000) | strict (n=2,892) | delta |
 |---|---:|---:|---:|
-| history share @ turn 10 | 97.0% | 97.0% | +0.03pp |
-| history share @ turn 30 | 98.9% | 98.9% | +0.04pp |
-| relative cost @ turn 30 | 163.3× | 170.2× | +6.9× |
-| growth exponent | 1.945 | 1.951 | +0.006 |
+| history share @ turn 10 | 96.9% | 96.9% | +0.06pp |
+| history share @ turn 30 | 98.8% | 98.8% | +0.00pp |
+| growth exponent | 1.951 | 1.958 | +0.006 |
 
 This is the expected result rather than a lucky one: Study A measures the
 *shape* of a conversation — how many turns, how long each message is — and that
 arithmetic does not care whether the topic is code. Residual coding content is
 not load-bearing here.
 
-**It will matter for Study B.** There the task mix directly determines the
-over-service estimate, and coding prompts are exactly the category where a
-cheap model is most likely to fall short. The stage-2 classifier pass is
-therefore not optional for Study B, and the filter should be improved before
-that study runs — the two failure modes above say how: raise recall with a
-short-prompt rule that does not depend on keyword count, and stop penalising
-long prose that merely mentions technical words.
-
----
+**It will matter for Study B**, where the task mix directly determines the
+over-service estimate and coding is exactly the category where a cheap model is
+most likely to fall short. The stage-2 classifier pass is therefore not optional
+for Study B.
 
 ## 2. Study A — the cost of a long conversation
 

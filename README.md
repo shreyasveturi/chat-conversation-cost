@@ -27,10 +27,10 @@ ten turns or more:
 |---|---|
 | Share of input spend that is resent history, by turn 10 | **97%** |
 | Share of input spend that is resent history, by turn 30 | **99%** |
-| Cost of turn 10 vs. the first message in the same thread | **66×** |
-| Cost of turn 30 vs. the first message | **163×** |
-| Cumulative input tokens by turn 30 (median) | **104k** |
-| Fitted growth exponent of cumulative input vs. turn count | **1.95** (R² = 0.990) |
+| Cost of turn 10 vs. the first message in the same thread | **63×** |
+| Cost of turn 30 vs. the first message | **172×** |
+| Cumulative input tokens by turn 30 (median) | **99k** |
+| Fitted growth exponent of cumulative input vs. turn count | **1.95** (R² = 0.992) |
 
 The fitted exponent is the quadratic claim tested rather than asserted: a value
 near 2 means cumulative cost really does grow with the square of turn count on
@@ -59,7 +59,7 @@ The lever is small, real, and almost nobody knows it:
 
 Continuing one long thread out of convenience is the largest single lever a
 capped user has. On this sample, asking a new question at turn 30 of an
-existing thread costs about **163×** what the same question costs in
+existing thread costs about **172×** what the same question costs in
 a fresh one — not because the question is harder, but because the thread is
 dragged along with it.
 
@@ -86,25 +86,27 @@ These are not fine print. They bound what the numbers above mean.
   conversations with at least *k* turns contribute. `n` is reported at every
   turn index, curves are truncated once the sample thins, and a fixed-composition
   balanced panel tests whether the rise is an artifact of that. Restricting to
-  the 118 conversations that run all the way to turn
+  the 134 conversations that run all the way to turn
   30, the resent share at turn 10 is
-  **96%**, against **97%** for the full
-  sample — a gap of 1.0 percentage points. Composition therefore
+  **97%**, against **97%** for the full
+  sample — a gap of 0.2 percentage points. Composition therefore
   accounts for very little of the rise; the effect is within-conversation.
 - **Input tokens only.** Output tokens consume quota too, but they are generated
   once and never resent, so they do not drive the quadratic effect.
 - **The curve thins at high turn counts.** All 3,000 conversations
-  contribute up to turn 10; by turn 30 only 118 remain. The
+  contribute up to turn 10; by turn 30 only 134 remain. The
   right-hand end of every chart is the noisiest part.
 - Read 5 shard(s) at stride 3; exact list in the filter log.
 - **The coding filter is imperfect, and we measured how imperfect.** Validated
-  on 200 blind prompts sampled from both sides of the decision: **78% precision,
-  88% recall**, leaving roughly one in nine surviving conversations still
-  coding-flavoured. A sensitivity re-run that drops a further 9.7% of the sample
-  moves the headline shares by **under 0.05pp** and the growth exponent by
-  0.006 — Study A measures conversation *shape*, not topic, so the residue is
-  not load-bearing. It would be for Study B. Labels were model-generated; a
-  human relabel is still outstanding. See [METHODOLOGY.md](METHODOLOGY.md) §1.3.
+  on blind samples drawn from *both* sides of the decision, then rebuilt and
+  re-validated on a **held-out** set: **74% precision, 91% recall**, leaving
+  roughly one in sixteen surviving conversations still coding-flavoured (down
+  from one in nine before the rebuild). A sensitivity re-run that drops a
+  further 3.6% of the sample moves the headline shares by **under 0.1pp** and
+  the growth exponent by 0.006 — Study A measures conversation *shape*, not
+  topic, so the residue is not load-bearing. It would be for Study B. Labels
+  were model-generated; a human relabel is still outstanding. See
+  [METHODOLOGY.md](METHODOLOGY.md) §1.3.
 
 Full protocol and limitations: **[METHODOLOGY.md](METHODOLOGY.md)**.
 
@@ -194,19 +196,20 @@ tables and every chart *are* committed, which is what a reviewer actually needs.
 
 ## Filter log
 
-Of **299,282** conversations scanned, **3,824** survived
+Of **299,282** conversations scanned, **3,479** survived
 every filter and **3,000** were sampled. Full drop-reason
 breakdown in `data/out/study_a_filter_log.json`:
 
 | Reason | Conversations | Share of scanned |
 |---|---:|---:|
-| too few turns | 145,908 | 48.8% |
+| too few turns | 137,944 | 46.1% |
 | not english | 132,135 | 44.2% |
-| coding | 12,391 | 4.1% |
-| **kept** | 3,824 | 1.3% |
+| coding | 18,998 | 6.3% |
 | first turn too short | 3,547 | 1.2% |
+| **kept** | 3,479 | 1.2% |
+| agent scaffold | 1,715 | 0.6% |
 | first turn too long | 1,365 | 0.5% |
-| near duplicate | 112 | 0.0% |
+| near duplicate | 99 | 0.0% |
 
 ---
 

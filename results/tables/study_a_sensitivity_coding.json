@@ -1,15 +1,15 @@
 {
   "baseline_n": 3000,
-  "strict_n": 2709,
-  "dropped": 291,
-  "dropped_share": 0.097,
+  "strict_n": 2892,
+  "dropped": 108,
+  "dropped_share": 0.036,
   "deltas": {
-    "history_share_turn_10_pp": 0.030117878016810096,
-    "history_share_turn_20_pp": -0.020193570502726743,
-    "history_share_turn_30_pp": 0.04406636855559043,
-    "relative_cost_turn_10_x": 1.8789566059432303,
-    "relative_cost_turn_30_x": 6.885674931129472,
-    "growth_exponent": 0.006064343180107512
+    "history_share_turn_10_pp": 0.06032748697938928,
+    "history_share_turn_20_pp": 0.020161829063439995,
+    "history_share_turn_30_pp": 0.0,
+    "relative_cost_turn_10_x": 3.2077369007803753,
+    "relative_cost_turn_30_x": 0.0,
+    "growth_exponent": 0.006257158114034933
   },
   "note": "Aggressive re-filter uses min_keyword_hits=1 instead of 2. Small deltas mean residual coding content is not load-bearing for Study A's conclusions."
 }

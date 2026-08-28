@@ -12,15 +12,16 @@
   "min_turns": 10,
   "records_scanned": 299282,
   "drop_reasons": {
-    "too_few_turns": 145908,
+    "too_few_turns": 137944,
     "not_english": 132135,
-    "coding": 12391,
-    "ok": 3824,
+    "coding": 18998,
     "first_turn_too_short": 3547,
+    "ok": 3479,
+    "agent_scaffold": 1715,
     "first_turn_too_long": 1365,
-    "near_duplicate": 112
+    "near_duplicate": 99
   },
-  "pool_after_filters": 3824,
+  "pool_after_filters": 3479,
   "sampled": 3000,
   "filters": {
     "language": "English",
